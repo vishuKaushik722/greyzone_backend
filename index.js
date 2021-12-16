@@ -8,9 +8,10 @@ import dotenv from "dotenv";
 import cookieSession from "cookie-session";
 import passport from "passport";
 import GoogleStrategy from "passport-google-oauth20";
+import multer from "multer";
+import path from 'path';
 
 import otpRoutes from './routes/otp.routes.js';
-
 import newItemRoutes from './routes/newItems.routes.js';
 import newUserRoutes from './routes/v2User.routes.js';
 import orderRoutes from './routes/orders.routes.js';
@@ -55,6 +56,36 @@ app.use('/v1/newUser' , newUserRoutes);
 app.use('/v1/orders', orderRoutes);
 app.use('/v1/posters' , posterRoutes);
 //New Routes
+
+
+//Image upload
+
+
+// storage engine 
+
+const storage = multer.diskStorage({
+    destination: './upload/images',
+    filename: (req, file, cb) => {
+        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    }
+})
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 1000000000
+    }
+})
+app.use('/profile', express.static('upload/images'));
+app.post("/upload", upload.single('profile'), (req, res) => {
+
+    res.json({
+        success: 1,
+        profile_url: `http://localhost:8000/profile/${req.file.filename}`
+    })
+})
+
+
 
 //Google Auth 2.0
 passport.use(
